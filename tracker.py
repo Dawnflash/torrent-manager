@@ -51,7 +51,7 @@ class Tracker:
         needed_space = size + client.reserve_gb * (1 << 30)
         if free_space < needed_space:
             print(
-                f"Not enough free space. Lacking {(needed_space - free_space) / (1 << 30):.02f} GiB.",
+                f"Disk space exceeded: {needed_space / (1 << 30):.02f}/{free_space / (1 << 30):.02f} GiB.",
                 file=sys.stderr,
             )
             return False
@@ -60,7 +60,7 @@ class Tracker:
             consumed = sum(torrent.size for torrent in torrents) + size
             if consumed > self.storage_cap:
                 print(
-                    f"Storage cap exceeded by {((consumed - self.storage_cap) / (1 << 30)):.02f} GiB.",
+                    f"Storage cap exceeded: {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
                     file=sys.stderr,
                 )
                 return False
@@ -70,18 +70,17 @@ class Tracker:
             ]
             if len(unsatisfied_torrents) >= self.unsatisfied_cap:
                 print(
-                    f"Tracker has reached its unsatisfied cap of {self.unsatisfied_cap}.",
+                    f"Unsatisfied cap exceeded: {unsatisfied_torrents}/{self.unsatisfied_cap}.",
                     file=sys.stderr,
                 )
                 return False
         if self.download_slots > 0:
-            download_slots = [
+            downloading = [
                 torrent for torrent in torrents if torrent.finished_at is None
             ]
-            print(len(download_slots))
-            if len(download_slots) >= self.download_slots:
+            if len(downloading) >= self.download_slots:
                 print(
-                    f"Tracker has reached its download slots cap of {self.download_slots}.",
+                    f"Download slots exceeded: {len(downloading)}/{self.download_slots}.",
                     file=sys.stderr,
                 )
                 return False
