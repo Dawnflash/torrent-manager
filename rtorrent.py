@@ -23,11 +23,6 @@ class RTorrentClient(Client):
             "d.timestamp.finished=",
             "d.size_bytes=",
             "d.ratio=",
-            "d.custom1=",
-            "d.custom2=",
-            "d.custom3=",
-            "d.custom4=",
-            "d.custom5=",
         )
         torrents = [
             Torrent(
