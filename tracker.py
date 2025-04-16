@@ -74,4 +74,15 @@ class Tracker:
                     file=sys.stderr,
                 )
                 return False
+        if self.download_slots > 0:
+            download_slots = [
+                torrent for torrent in torrents if torrent.finished_at is None
+            ]
+            print(len(download_slots))
+            if len(download_slots) >= self.download_slots:
+                print(
+                    f"Tracker has reached its download slots cap of {self.download_slots}.",
+                    file=sys.stderr,
+                )
+                return False
         return True
