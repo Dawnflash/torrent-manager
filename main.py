@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import sys
+import os
 import argparse
 import yaml
 
@@ -11,11 +12,12 @@ from tracker import Tracker
 
 
 def main():
+    script_dir = os.path.dirname(os.path.realpath(__file__))
     parser = argparse.ArgumentParser(description="Dawn's Torrent Manager")
     parser.add_argument(
         "--config",
         type=str,
-        default="config.yaml",
+        default=f"{script_dir}/config.yaml",
         help="Path to the configuration file",
     )
     parser.add_argument(
