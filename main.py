@@ -41,6 +41,7 @@ def main():
     parser.add_argument(
         "--tracker", type=str, help="Tracker to check for (use with --check)"
     )
+    parser.add_argument("--configure", action="store_true", help="Configure the client")
     args = parser.parse_args()
 
     with open(args.config, "r", encoding="utf-8") as f:
@@ -70,6 +71,8 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         print(f"Client: {name}")
+        if args.configure:
+            client.configure()
         for tracker_name in Config.raw["trackers"]:
             tracker = Tracker(tracker_name)
             if not tracker.enabled:

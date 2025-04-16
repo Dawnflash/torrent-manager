@@ -79,3 +79,8 @@ class RTorrentClient(Client):
             if e.faultCode == 1:
                 return False
             raise e
+
+    def configure(self):
+        """Configure the client."""
+        # pre-allocate files so that free_diskspace is more accurate
+        self.proxy.system.file.allocate.set("", 1)
