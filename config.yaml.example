@@ -1,0 +1,37 @@
+global:
+  trackers:
+    seed_buffer_hours: 1 # extra seedtime on top of what is required
+  clients:
+    required_labels:
+      - automated
+clients:
+  rtorrent_1:
+    type: rtorrent
+    url: https://my.endpoint.com/scgi.php
+    reserve_gb: 50 # baseline storage reservation
+
+trackers:
+  aither:
+    label: aither
+    url: aither.cc
+    enabled: true
+    download_slots: 25
+    requirements:
+      - min_seed_hours: 120
+    storage_cap_gb: 300
+  torrentleech:
+    label: tl
+    url: tracker.torrentleech.org
+    enabled: true
+    requirements:
+      - min_seed_hours: 192
+      - min_seed_ratio: 1
+    storage_cap_gb: 200
+  myanonamouse:
+    label: mam
+    url: t.myanonamouse.net
+    enabled: false
+    requirements:
+      - min_seed_hours: 72
+    unsatisfied_cap: 100
+    storage_cap_gb: 100
