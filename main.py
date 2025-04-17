@@ -90,8 +90,9 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                 f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
             )
             for torrent in to_delete:
+                prefix = "ERR" if torrent.tracker_error is not None else "SAT"
                 print(
-                    f"SAT: {torrent.name} {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
+                    f"{prefix}: {torrent.name} {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
                 )
                 if not args.list:
                     client.remove_torrent(torrent)
