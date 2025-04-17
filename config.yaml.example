@@ -8,7 +8,7 @@ clients:
   rtorrent_1:
     type: rtorrent
     url: https://my.endpoint.com/scgi.php
-    reserve_gb: 50 # baseline storage reservation
+    storage_cap_gb: 1000
 
 trackers:
   aither:

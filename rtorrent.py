@@ -6,10 +6,9 @@ from torrent import Torrent
 
 
 class RTorrentClient(Client):
-    def __init__(self, url, reserve_gb: int, required_labels: list[str]):
-        super().__init__(reserve_gb, required_labels)
+    def __init__(self, url, storage_cap_gb: int, required_labels: list[str]):
+        super().__init__(storage_cap_gb, required_labels)
         self.proxy = xmlrpc.client.ServerProxy(url)
-        self._hashes = set()  # needed for calling free_diskspace
 
     def list_torrents(self) -> list[Torrent]:
         """List torrents."""
@@ -39,23 +38,7 @@ class RTorrentClient(Client):
             for entry in raw_torrents
         ]
 
-        self._hashes = {torrent.infohash for torrent in torrents}
         return torrents
-
-    def free_diskspace(self) -> int:
-        """Get free disk space in bytes."""
-        if len(self._hashes) == 0:
-            self.list_torrents()
-        if len(self._hashes) == 0:
-            return int(1e18)
-        for infohash in self._hashes:
-            try:
-                return int(self.proxy.d.free_diskspace(infohash))
-            except xmlrpc.client.Fault as e:
-                if e.faultCode == 1:
-                    continue
-                raise e
-        return int(1e18)
 
     def _hook_erase_event(self):
         """Add a hook that erases files when the torrent is removed."""
@@ -81,8 +64,3 @@ class RTorrentClient(Client):
             if e.faultCode == 1:
                 return False
             raise e
-
-    def configure(self):
-        """Configure the client."""
-        # pre-allocate files so that free_diskspace is more accurate
-        self.proxy.system.file.allocate.set("", 1)

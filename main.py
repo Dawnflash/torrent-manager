@@ -70,15 +70,17 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
 
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
-        print(f"Client: {name}")
+        client_torrents = client.list_torrents()
+        print(
+            f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
+        )
         if args.configure:
             client.configure()
-        torrents = client.list_torrents()
         for tracker_name in Config.raw["trackers"]:
             tracker = Tracker(tracker_name)
             if not tracker.enabled:
                 continue
-            torrents = tracker.filter_torrents(client, torrents)
+            torrents = tracker.filter_torrents(client, client_torrents)
             to_delete = [
                 t
                 for t in torrents

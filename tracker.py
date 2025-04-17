@@ -51,20 +51,20 @@ class Tracker:
 
     def can_accept(self, client: Client, size: int) -> bool:
         """Check if the tracker can accept the torrent."""
-        free_space = client.free_diskspace()
-        needed_space = size + client.reserve_gb * (1 << 30)
-        if free_space < needed_space:
+        client_torrents = client.list_torrents()
+        size_total = sum(torrent.size for torrent in client_torrents) + size
+        if size_total > client.storage_cap:
             print(
-                f"Disk space exceeded: {needed_space / (1 << 30):.02f}/{free_space / (1 << 30):.02f} GiB.",
+                f"Storage cap exceeded (client): {size_total / (1 << 30):.02f}/{client.storage_cap / (1 << 30):.02f} GiB.",
                 file=sys.stderr,
             )
             return False
-        torrents = self.list_torrents(client)
+        torrents = self.filter_torrents(client, client_torrents)
         if self.storage_cap > 0:
             consumed = sum(torrent.size for torrent in torrents) + size
             if consumed > self.storage_cap:
                 print(
-                    f"Storage cap exceeded: {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
+                    f"Storage cap exceeded (tracker): {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
                     file=sys.stderr,
                 )
                 return False
