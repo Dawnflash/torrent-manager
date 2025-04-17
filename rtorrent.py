@@ -34,7 +34,7 @@ class RTorrentClient(Client):
                 finished_at=datetime.fromtimestamp(entry[4]) if entry[4] > 0 else None,
                 size=int(entry[5]),
                 ratio=float(entry[6]) / 1000,
-                error=entry[7] if entry[7] else None,
+                tracker_error=entry[7] if entry[7].startswith("Tracker: ") else None,
             )
             for entry in raw_torrents
         ]

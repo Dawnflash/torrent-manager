@@ -80,7 +80,9 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                 continue
             torrents = tracker.filter_torrents(client, torrents)
             to_delete = [
-                t for t in torrents if tracker.is_satisfied(t) or t.error is not None
+                t
+                for t in torrents
+                if tracker.is_satisfied(t) or t.tracker_error is not None
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
             size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)
