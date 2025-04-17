@@ -16,14 +16,18 @@ class Tracker:
         self.unsatisfied_cap = self.config.get("unsatisfied_cap", 0)
         self.download_slots = self.config.get("download_slots", 0)
 
-    def list_torrents(self, client: Client):
-        """List torrents from this tracker."""
+    def filter_torrents(self, client: Client, torrents: list[Torrent]) -> list[Torrent]:
+        """Filter torrents from this tracker."""
         labels = client.required_labels.union([self.label])
         return [
             torrent
-            for torrent in client.list_torrents()
+            for torrent in torrents
             if all(label in torrent.labels for label in labels)
         ]
+
+    def list_torrents(self, client: Client) -> list[Torrent]:
+        """List torrents from this tracker."""
+        return self.filter_torrents(client, client.list_torrents())
 
     def evaluate_requirement(self, torrent: Torrent, name: str, value: int) -> bool:
         """Evaluate a requirement for a torrent."""

@@ -73,18 +73,21 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
         print(f"Client: {name}")
         if args.configure:
             client.configure()
+        torrents = client.list_torrents()
         for tracker_name in Config.raw["trackers"]:
             tracker = Tracker(tracker_name)
             if not tracker.enabled:
                 continue
-            torrents = tracker.list_torrents(client)
-            sat = [t for t in torrents if tracker.is_satisfied(t)]
+            torrents = tracker.filter_torrents(client, torrents)
+            to_delete = [
+                t for t in torrents if tracker.is_satisfied(t) or t.error is not None
+            ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
-            size_sat_gb = sum(t.size for t in sat) / (1 << 30)
+            size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)
             print(
-                f"Tracker: {tracker_name} ({len(sat)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB satisfied)"
+                f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
             )
-            for torrent in sat:
+            for torrent in to_delete:
                 print(
                     f"SAT: {torrent.name} {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
                 )
