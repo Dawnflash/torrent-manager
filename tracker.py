@@ -16,6 +16,7 @@ class Tracker:
         self.download_slots = self.config.get("download_slots", 0)
         self.ratio_buffer = self.config.get("ratio_buffer", 0)
         self.seed_buffer_hours = self.config.get("seed_buffer_hours", 0)
+        self.clear_errors = set(self.config.get("clear_errors", []))
 
     def filter_torrents(self, client: Client, torrents: list[Torrent]) -> list[Torrent]:
         """Filter torrents from this tracker."""
@@ -100,3 +101,10 @@ class Tracker:
                     f"Down rate cap exceeded: {down_rate / 1e6:.02f} Mbps.",
                 )
         return True, "OK"
+
+    def is_faulted(self, torrent: Torrent) -> bool:
+        """Check if the torrent has a fatal tracker error and can be deleted."""
+        return (
+            torrent.tracker_error is not None
+            and torrent.tracker_error in self.clear_errors
+        )

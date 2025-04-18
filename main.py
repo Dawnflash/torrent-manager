@@ -96,7 +96,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             to_delete = [
                 t
                 for t in torrents
-                if t.tracker_error is not None
+                if tracker.is_faulted(t)
                 or (tracker.is_satisfied(t) and client.is_satisfied(t))
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)

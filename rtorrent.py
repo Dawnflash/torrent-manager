@@ -1,5 +1,6 @@
 import xmlrpc.client
 import urllib.parse
+import re
 from datetime import datetime
 from client import Client
 from torrent import Torrent
@@ -37,7 +38,11 @@ class RTorrentClient(Client):
                 ratio=float(entry[6]) / 1000,
                 down_rate=float(entry[7]) * 8,  # Bps in
                 up_rate=float(entry[8]) * 8,  # Bps in
-                tracker_error=entry[9] if entry[9].startswith("Tracker: ") else None,
+                tracker_error=(
+                    re.search(r"^Tracker: \[(.*)\]$", entry[9]).group(1)
+                    if entry[9].startswith("Tracker: [")
+                    else None
+                ),  # "Tracker: [error message]"
             )
             for entry in raw_torrents
         ]
