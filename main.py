@@ -9,6 +9,7 @@ import yaml
 from client_factory import ClientFactory
 from config import Config
 from tracker import Tracker
+from logger import Logger
 
 
 def main():
@@ -52,7 +53,8 @@ def main():
 
     with open(args.config, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    Config(config, args.log)
+    Config(config)
+    Logger(args.log)
 
     if args.check:
         if args.client is None or args.size is None or args.tracker is None:
@@ -69,6 +71,9 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             )
         tracker = Tracker(args.tracker)
         client = ClientFactory().create(args.client)
+        Logger.log_message(
+            f"Ingress check: client={args.client}, tracker={args.tracker}, size={args.size / (1 <<30 ):.02f} GiB"
+        )
         if tracker.can_accept(client, args.size):
             sys.exit(0)
         else:
@@ -77,7 +82,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents()
-        Config.log_message(
+        Logger.log_message(
             f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
         )
         if args.configure:
@@ -94,12 +99,12 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
             size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)
-            Config.log_message(
+            Logger.log_message(
                 f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
             )
             for torrent in to_delete:
                 prefix = "ERR" if torrent.tracker_error is not None else "SAT"
-                Config.log_message(
+                Logger.log_message(
                     f"{prefix}: {torrent.name} {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
                 )
                 if not args.list:

@@ -1,6 +1,6 @@
-import sys
 from datetime import datetime
 from config import Config
+from logger import Logger
 from client import Client
 from torrent import Torrent
 
@@ -56,7 +56,7 @@ class Tracker:
         client_torrents = client.list_torrents()
         size_total = sum(torrent.size for torrent in client_torrents) + size
         if size_total > client.storage_cap:
-            Config.log_message(
+            Logger.log_message(
                 f"Storage cap exceeded (client): {size_total / (1 << 30):.02f}/{client.storage_cap / (1 << 30):.02f} GiB.",
             )
             return False
@@ -64,7 +64,7 @@ class Tracker:
         if self.storage_cap > 0:
             consumed = sum(torrent.size for torrent in torrents) + size
             if consumed > self.storage_cap:
-                Config.log_message(
+                Logger.log_message(
                     f"Storage cap exceeded (tracker): {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
                 )
                 return False
@@ -73,7 +73,7 @@ class Tracker:
                 torrent for torrent in torrents if not self.is_satisfied(torrent)
             ]
             if len(unsatisfied_torrents) >= self.unsatisfied_cap:
-                Config.log_message(
+                Logger.log_message(
                     f"Unsatisfied cap exceeded: {unsatisfied_torrents}/{self.unsatisfied_cap}.",
                 )
                 return False
@@ -82,8 +82,9 @@ class Tracker:
                 torrent for torrent in torrents if torrent.finished_at is None
             ]
             if len(downloading) >= self.download_slots:
-                Config.log_message(
+                Logger.log_message(
                     f"Download slots exceeded: {len(downloading)}/{self.download_slots}.",
                 )
                 return False
+        Logger.log_message("Torrent accepted.")
         return True
