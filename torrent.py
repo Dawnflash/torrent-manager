@@ -23,4 +23,4 @@ class Torrent:
         self.tracker_error = tracker_error
 
     def __repr__(self):
-        return f"Torrent(infohash={self.infohash}, name={self.name}, labels={self.labels}, started_at={self.started_at}, finished_at={self.finished_at}, size={self.size}, ratio={self.ratio} error={self.error})"
+        return f"Torrent(hash={self.infohash}, name={self.name}, labels={self.labels}, started_at={self.started_at}, finished_at={self.finished_at}, size={self.size}, ratio={self.ratio}, tracker_error={self.tracker_error})"

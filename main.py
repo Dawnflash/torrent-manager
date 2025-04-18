@@ -21,6 +21,12 @@ def main():
         help="Path to the configuration file",
     )
     parser.add_argument(
+        "--log",
+        type=str,
+        default=f"{script_dir}/log.txt",
+        help="Path to the log file",
+    )
+    parser.add_argument(
         "--client",
         type=str,
         help="Torrent client to use",
@@ -46,7 +52,7 @@ def main():
 
     with open(args.config, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    Config(config)
+    Config(config, args.log)
 
     if args.check:
         if args.client is None or args.size is None or args.tracker is None:
@@ -71,7 +77,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents()
-        print(
+        Config.log_message(
             f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
         )
         if args.configure:
@@ -88,12 +94,12 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
             size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)
-            print(
+            Config.log_message(
                 f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
             )
             for torrent in to_delete:
                 prefix = "ERR" if torrent.tracker_error is not None else "SAT"
-                print(
+                Config.log_message(
                     f"{prefix}: {torrent.name} {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
                 )
                 if not args.list:

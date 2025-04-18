@@ -32,10 +32,12 @@ class Tracker:
     def evaluate_requirement(self, torrent: Torrent, name: str, value: int) -> bool:
         """Evaluate a requirement for a torrent."""
         if name == "min_seed_ratio":
-            return torrent.ratio >= value
+            buffer = Config.raw["global"]["trackers"]["ratio_buffer"]
+            return torrent.ratio >= value + buffer
         elif name == "min_seed_hours":
             age = (datetime.now() - torrent.finished_at).total_seconds() / 3600
-            return age >= value
+            buffer = int(Config.raw["global"]["trackers"]["seed_buffer_hours"])
+            return age >= value + buffer
         else:
             raise ValueError(f"Unknown requirement: {name}")
 
@@ -54,18 +56,16 @@ class Tracker:
         client_torrents = client.list_torrents()
         size_total = sum(torrent.size for torrent in client_torrents) + size
         if size_total > client.storage_cap:
-            print(
+            Config.log_message(
                 f"Storage cap exceeded (client): {size_total / (1 << 30):.02f}/{client.storage_cap / (1 << 30):.02f} GiB.",
-                file=sys.stderr,
             )
             return False
         torrents = self.filter_torrents(client, client_torrents)
         if self.storage_cap > 0:
             consumed = sum(torrent.size for torrent in torrents) + size
             if consumed > self.storage_cap:
-                print(
+                Config.log_message(
                     f"Storage cap exceeded (tracker): {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
-                    file=sys.stderr,
                 )
                 return False
         if self.unsatisfied_cap > 0:
@@ -73,9 +73,8 @@ class Tracker:
                 torrent for torrent in torrents if not self.is_satisfied(torrent)
             ]
             if len(unsatisfied_torrents) >= self.unsatisfied_cap:
-                print(
+                Config.log_message(
                     f"Unsatisfied cap exceeded: {unsatisfied_torrents}/{self.unsatisfied_cap}.",
-                    file=sys.stderr,
                 )
                 return False
         if self.download_slots > 0:
@@ -83,9 +82,8 @@ class Tracker:
                 torrent for torrent in torrents if torrent.finished_at is None
             ]
             if len(downloading) >= self.download_slots:
-                print(
+                Config.log_message(
                     f"Download slots exceeded: {len(downloading)}/{self.download_slots}.",
-                    file=sys.stderr,
                 )
                 return False
         return True

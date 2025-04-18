@@ -1,6 +1,7 @@
 global:
   trackers:
     seed_buffer_hours: 1 # extra seedtime on top of what is required
+    ratio_buffer: 0.5 # extra ratio on top of what is required
   clients:
     required_labels:
       - automated
