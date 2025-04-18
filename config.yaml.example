@@ -10,6 +10,9 @@ clients:
     type: rtorrent
     url: https://my.endpoint.com/scgi.php
     storage_cap_gb: 1000
+    up_rate_cap_mbps: 900 # in Mbps
+    down_rate_cap_mbps: 900 # in Mbps
+    up_rate_threshold_mbps: 4 # only remove torrents below this upload rate (in Mbps)
 
 trackers:
   aither:

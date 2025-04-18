@@ -71,10 +71,11 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             )
         tracker = Tracker(args.tracker)
         client = ClientFactory().create(args.client)
+        ok, err = tracker.can_accept(client, args.size)
         Logger.log_message(
-            f"Ingress check: client={args.client}, tracker={args.tracker}, size={args.size / (1 <<30 ):.02f} GiB"
+            f"Ingress check (client={args.client}, tracker={args.tracker}, size={args.size / (1 <<30 ):.02f} GiB): {err}"
         )
-        if tracker.can_accept(client, args.size):
+        if ok:
             sys.exit(0)
         else:
             sys.exit(1)
@@ -95,7 +96,8 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             to_delete = [
                 t
                 for t in torrents
-                if tracker.is_satisfied(t) or t.tracker_error is not None
+                if t.tracker_error is not None
+                or (tracker.is_satisfied(t) and client.is_satisfied(t))
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
             size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)

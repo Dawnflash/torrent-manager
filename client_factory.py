@@ -9,13 +9,7 @@ class ClientFactory:
             raise ValueError(f"Unknown client: {name}")
         client_config = Config.raw["clients"][name]
         client_type = client_config["type"]
-        storage_cap_gb = client_config["storage_cap_gb"]
-        required_labels = set(Config.raw["global"]["clients"]["required_labels"])
         if client_type == "rtorrent":
-            return RTorrentClient(
-                client_config["url"],
-                storage_cap_gb * (1 << 30),
-                required_labels,
-            )
+            return RTorrentClient(name, client_config["url"])
         else:
             raise ValueError(f"Unknown client type: {client_type}")

@@ -6,8 +6,8 @@ from torrent import Torrent
 
 
 class RTorrentClient(Client):
-    def __init__(self, url, storage_cap_gb: int, required_labels: list[str]):
-        super().__init__(storage_cap_gb, required_labels)
+    def __init__(self, name: str, url: str):
+        super().__init__(name)
         self.proxy = xmlrpc.client.ServerProxy(url)
 
     def list_torrents(self) -> list[Torrent]:
@@ -22,6 +22,8 @@ class RTorrentClient(Client):
             "d.timestamp.finished=",
             "d.size_bytes=",
             "d.ratio=",
+            "d.down.rate=",
+            "d.up.rate=",
             "d.message=",
         )
         torrents = [
@@ -33,7 +35,9 @@ class RTorrentClient(Client):
                 finished_at=datetime.fromtimestamp(entry[4]) if entry[4] > 0 else None,
                 size=int(entry[5]),
                 ratio=float(entry[6]) / 1000,
-                tracker_error=entry[7] if entry[7].startswith("Tracker: ") else None,
+                down_rate=float(entry[7]) * 8,  # Bps in
+                up_rate=float(entry[8]) * 8,  # Bps in
+                tracker_error=entry[9] if entry[9].startswith("Tracker: ") else None,
             )
             for entry in raw_torrents
         ]

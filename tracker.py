@@ -1,6 +1,5 @@
 from datetime import datetime
 from config import Config
-from logger import Logger
 from client import Client
 from torrent import Torrent
 
@@ -15,6 +14,8 @@ class Tracker:
         self.storage_cap = self.config.get("storage_cap_gb", 0) * (1 << 30)
         self.unsatisfied_cap = self.config.get("unsatisfied_cap", 0)
         self.download_slots = self.config.get("download_slots", 0)
+        self.ratio_buffer = self.config.get("ratio_buffer", 0)
+        self.seed_buffer_hours = self.config.get("seed_buffer_hours", 0)
 
     def filter_torrents(self, client: Client, torrents: list[Torrent]) -> list[Torrent]:
         """Filter torrents from this tracker."""
@@ -32,12 +33,10 @@ class Tracker:
     def evaluate_requirement(self, torrent: Torrent, name: str, value: int) -> bool:
         """Evaluate a requirement for a torrent."""
         if name == "min_seed_ratio":
-            buffer = Config.raw["global"]["trackers"]["ratio_buffer"]
-            return torrent.ratio >= value + buffer
+            return torrent.ratio >= value + self.ratio_buffer
         elif name == "min_seed_hours":
             age = (datetime.now() - torrent.finished_at).total_seconds() / 3600
-            buffer = int(Config.raw["global"]["trackers"]["seed_buffer_hours"])
-            return age >= value + buffer
+            return age >= value + self.seed_buffer_hours
         else:
             raise ValueError(f"Unknown requirement: {name}")
 
@@ -51,40 +50,53 @@ class Tracker:
             for reqs in self.requirement_sets
         )
 
-    def can_accept(self, client: Client, size: int) -> bool:
-        """Check if the tracker can accept the torrent."""
+    def can_accept(self, client: Client, size: int) -> tuple[bool, str]:
+        """Check if the tracker can accept the torrent. Returns success and error message."""
         client_torrents = client.list_torrents()
         size_total = sum(torrent.size for torrent in client_torrents) + size
         if size_total > client.storage_cap:
-            Logger.log_message(
+            return (
+                False,
                 f"Storage cap exceeded (client): {size_total / (1 << 30):.02f}/{client.storage_cap / (1 << 30):.02f} GiB.",
             )
-            return False
         torrents = self.filter_torrents(client, client_torrents)
         if self.storage_cap > 0:
             consumed = sum(torrent.size for torrent in torrents) + size
             if consumed > self.storage_cap:
-                Logger.log_message(
+                return (
+                    False,
                     f"Storage cap exceeded (tracker): {consumed / (1 << 30):.02f}/{self.storage_cap / (1 << 30):.02f} GiB.",
                 )
-                return False
         if self.unsatisfied_cap > 0:
             unsatisfied_torrents = [
                 torrent for torrent in torrents if not self.is_satisfied(torrent)
             ]
             if len(unsatisfied_torrents) >= self.unsatisfied_cap:
-                Logger.log_message(
+                return (
+                    False,
                     f"Unsatisfied cap exceeded: {unsatisfied_torrents}/{self.unsatisfied_cap}.",
                 )
-                return False
         if self.download_slots > 0:
             downloading = [
                 torrent for torrent in torrents if torrent.finished_at is None
             ]
             if len(downloading) >= self.download_slots:
-                Logger.log_message(
+                return (
+                    False,
                     f"Download slots exceeded: {len(downloading)}/{self.download_slots}.",
                 )
-                return False
-        Logger.log_message("Torrent accepted.")
-        return True
+        if client.up_rate_cap > 0:
+            up_rate = sum(torrent.up_rate for torrent in torrents)
+            if up_rate >= client.up_rate_cap:
+                return (
+                    False,
+                    f"Up rate cap exceeded: {up_rate / 1e6:.02f} Mbps.",
+                )
+        if client.down_rate_cap > 0:
+            down_rate = sum(torrent.down_rate for torrent in torrents)
+            if down_rate >= client.down_rate_cap:
+                return (
+                    False,
+                    f"Down rate cap exceeded: {down_rate / 1e6:.02f} Mbps.",
+                )
+        return True, "OK"
