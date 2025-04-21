@@ -62,9 +62,14 @@ class RTorrentClient(Client):
         """Remove the hook that erases files when the torrent is removed."""
         self.proxy.method.set_key("", "event.download.erased", "delete_erased")
 
+    def announce(self, torrent: Torrent):
+        """Announce to the tracker."""
+        self.proxy.d.tracker_announce(torrent.infohash)
+
     def remove_torrent(self, torrent: Torrent) -> bool:
         """Remove a torrent by its infohash."""
         try:
+            self.announce(torrent)  # update the tracker stats
             self._hook_erase_event()
             self.proxy.d.erase(torrent.infohash)
             self._unhook_erase_event()

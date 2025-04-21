@@ -24,6 +24,10 @@ class Client(ABC):
     def remove_torrent(self, torrent: Torrent) -> bool:
         """Remove a torrent by its infohash."""
 
+    @abstractmethod
+    def announce(self, torrent: Torrent):
+        """Announce to the tracker."""
+
     def configure(self):
         """Configure the client."""
 
