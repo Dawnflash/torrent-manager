@@ -105,8 +105,13 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                 f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
             )
             for torrent in to_delete:
+                age_hours = (
+                    (datetime.now() - torrent.finished_at).total_seconds() / 3600
+                    if torrent.finished_at
+                    else 0
+                )
                 msg = "ERR" if torrent.tracker_error is not None else "SAT"
-                msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {(datetime.now() - torrent.finished_at).total_seconds() / 3600:.02f}h {torrent.ratio * 100:.02f}%"
+                msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio * 100:.02f}%"
                 if tracker.is_faulted(torrent):
                     msg += f" [{torrent.tracker_error}]"
                 Logger.log_message(msg)
