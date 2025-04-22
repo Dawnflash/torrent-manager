@@ -110,9 +110,10 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                     if torrent.finished_at
                     else 0
                 )
-                msg = "ERR" if torrent.tracker_error is not None else "SAT"
+                is_faulted = tracker.is_faulted(torrent)
+                msg = "ERR" if is_faulted else "SAT"
                 msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio * 100:.02f}%"
-                if tracker.is_faulted(torrent):
+                if is_faulted:
                     msg += f" [{torrent.tracker_error}]"
                 Logger.log_message(msg)
                 if not args.list:
