@@ -88,7 +88,6 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             for t in client_torrents
             if t.infohash == "2f104cd5435ac976c0dcb0ab2acc13ef33f5f60f"
         ]
-        print(t[0])
         Logger.log_message(
             f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
         )
@@ -99,9 +98,6 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             if not tracker.enabled:
                 continue
             torrents = tracker.filter_torrents(client, client_torrents)
-            print(torrents[0])
-            for torrent in torrents:
-                print(f"{torrent.infohash} {torrent.state}")
             to_delete = [
                 t
                 for t in torrents

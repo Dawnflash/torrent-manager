@@ -25,7 +25,8 @@ Use a Dockerfile like this:
 
 ```dockerfile
 FROM ghcr.io/autobrr/autobrr:latest
-RUN apk add --update --no-cache python3 py3-yaml
+RUN apk add --update --no-cache python3 py3-yaml py3-pip
+RUN python3 -m pip install qbittorrent --break-system-packages
 ```
 
 ## Supported clients
