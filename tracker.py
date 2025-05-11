@@ -53,7 +53,7 @@ class Tracker:
 
     def can_accept(self, client: Client, size: int) -> tuple[bool, str]:
         """Check if the tracker can accept the torrent. Returns success and error message."""
-        client_torrents = client.list_torrents()
+        client_torrents = client.list_torrents_filtered()
         size_total = sum(torrent.size for torrent in client_torrents) + size
         if size_total > client.storage_cap:
             return (

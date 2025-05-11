@@ -20,6 +20,14 @@ class Client(ABC):
     def list_torrents(self) -> list[Torrent]:
         """List torrents."""
 
+    def list_torrents_filtered(self) -> list[Torrent]:
+        """List torrents filtered by required labels."""
+        return [
+            torrent
+            for torrent in self.list_torrents()
+            if all(label in torrent.labels for label in self.required_labels)
+        ]
+
     @abstractmethod
     def remove_torrent(self, torrent: Torrent) -> bool:
         """Remove a torrent by its infohash."""

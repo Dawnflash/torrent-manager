@@ -82,7 +82,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
 
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
-        client_torrents = client.list_torrents()
+        client_torrents = client.list_torrents_filtered()
         t = [
             t
             for t in client_torrents
