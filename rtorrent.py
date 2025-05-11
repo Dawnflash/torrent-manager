@@ -7,9 +7,22 @@ from torrent import Torrent
 
 
 class RTorrentClient(Client):
-    def __init__(self, name: str, url: str):
+    def __init__(self, name: str, url: str, auth: dict[str, str] = None):
         super().__init__(name)
+        if auth:
+            auth = urllib.parse.quote(f"{auth['username']}:{auth['password']}")
+            url = url.replace("://", f"://{auth}@")
         self.proxy = xmlrpc.client.ServerProxy(url)
+
+    def _get_status(self, is_open: bool, is_active: bool, msg: str) -> str:
+        """Get the status of the torrent."""
+        if msg.startswith("Tracker: ["):
+            return "ERROR"
+        if is_open and is_active:
+            return "OK"
+        if is_open and not is_active:
+            return "PAUSED"
+        return "STOPPED"
 
     def list_torrents(self) -> list[Torrent]:
         """List torrents."""
@@ -26,6 +39,8 @@ class RTorrentClient(Client):
             "d.down.rate=",
             "d.up.rate=",
             "d.message=",
+            "d.is_open=",
+            "d.is_active=",
         )
         torrents = [
             Torrent(
@@ -38,6 +53,11 @@ class RTorrentClient(Client):
                 ratio=float(entry[6]) / 1000,
                 down_rate=float(entry[7]) * 8,  # Bps in
                 up_rate=float(entry[8]) * 8,  # Bps in
+                state=self._get_status(
+                    is_open=entry[10] == "1",
+                    is_active=entry[11] == "1",
+                    msg=entry[9],
+                ),
                 tracker_error=(
                     re.search(r"^Tracker: \[(.*)\]$", entry[9]).group(1)
                     if entry[9].startswith("Tracker: [")

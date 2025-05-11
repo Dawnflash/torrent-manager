@@ -102,9 +102,6 @@ class Tracker:
                 )
         return True, "OK"
 
-    def is_faulted(self, torrent: Torrent) -> bool:
+    def is_faulted(self, client: Client, torrent: Torrent) -> bool:
         """Check if the torrent has a fatal tracker error and can be deleted."""
-        return (
-            torrent.tracker_error is not None
-            and torrent.tracker_error in self.clear_errors
-        )
+        return client.is_faulted(torrent) and torrent.tracker_error in self.clear_errors

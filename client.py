@@ -36,3 +36,7 @@ class Client(ABC):
         if self.up_rate_threshold > 0:
             return torrent.up_rate < self.up_rate_threshold
         return True
+
+    def is_faulted(self, torrent: Torrent) -> bool:
+        """Check if the torrent is faulted. Populate tracker error if lazy-loaded."""
+        return torrent.tracker_error is not None

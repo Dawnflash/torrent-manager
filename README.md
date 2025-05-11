@@ -31,7 +31,7 @@ RUN apk add --update --no-cache python3 py3-yaml
 ## Supported clients
 
 - rTorrent
-- qBitTorrent (planned)
+- qBitTorrent
 
 ## Supported trackers
 

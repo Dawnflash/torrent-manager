@@ -2,3 +2,6 @@ __pycache__
 *.py[cod]
 config.yaml
 log.txt
+bin
+lib
+pyvenv.cfg

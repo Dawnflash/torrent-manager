@@ -9,10 +9,19 @@ clients:
   rtorrent_1:
     type: rtorrent
     url: https://my.endpoint.com/scgi.php
+    auth:
+      username: myusername
+      password: mypassword
     storage_cap_gb: 1000
     up_rate_cap_mbps: 900 # in Mbps
     down_rate_cap_mbps: 900 # in Mbps
     up_rate_threshold_mbps: 4 # only remove torrents below this upload rate (in Mbps)
+  qbt_1:
+    type: qbittorrent
+    url: http://my.endpoint.com:8080
+    auth:
+      username: myusername
+      password: mypassword
 
 trackers:
   aither:

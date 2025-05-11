@@ -13,6 +13,7 @@ class Torrent:
         ratio: float,
         down_rate: float,  # bps
         up_rate: float,  # bps
+        state: str,
         tracker_error: str | None,
     ):
         self.infohash = infohash
@@ -24,7 +25,8 @@ class Torrent:
         self.ratio = ratio
         self.down_rate = down_rate
         self.up_rate = up_rate
+        self.state = state
         self.tracker_error = tracker_error
 
     def __repr__(self):
-        return f"Torrent(hash={self.infohash}, name={self.name}, labels={self.labels}, started_at={self.started_at}, finished_at={self.finished_at}, size={self.size}, ratio={self.ratio}, tracker_error={self.tracker_error}, down_rate={self.down_rate}, up_rate={self.up_rate})"
+        return f"Torrent(hash={self.infohash}, name={self.name}, labels={self.labels}, started_at={self.started_at}, finished_at={self.finished_at}, size={self.size}, ratio={self.ratio}, state={self.state} tracker_error={self.tracker_error}, down_rate={self.down_rate}, up_rate={self.up_rate})"

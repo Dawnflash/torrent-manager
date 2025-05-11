@@ -83,6 +83,12 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents()
+        t = [
+            t
+            for t in client_torrents
+            if t.infohash == "2f104cd5435ac976c0dcb0ab2acc13ef33f5f60f"
+        ]
+        print(t[0])
         Logger.log_message(
             f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
         )
@@ -93,10 +99,13 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             if not tracker.enabled:
                 continue
             torrents = tracker.filter_torrents(client, client_torrents)
+            print(torrents[0])
+            for torrent in torrents:
+                print(f"{torrent.infohash} {torrent.state}")
             to_delete = [
                 t
                 for t in torrents
-                if tracker.is_faulted(t)
+                if tracker.is_faulted(client, t)
                 or (tracker.is_satisfied(t) and client.is_satisfied(t))
             ]
             size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
@@ -110,7 +119,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                     if torrent.finished_at
                     else 0
                 )
-                is_faulted = tracker.is_faulted(torrent)
+                is_faulted = tracker.is_faulted(client, torrent)
                 msg = "ERR" if is_faulted else "SAT"
                 msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio * 100:.02f}%"
                 if is_faulted:
