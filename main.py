@@ -83,11 +83,6 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents_filtered()
-        t = [
-            t
-            for t in client_torrents
-            if t.infohash == "2f104cd5435ac976c0dcb0ab2acc13ef33f5f60f"
-        ]
         Logger.log_message(
             f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
         )
