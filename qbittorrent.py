@@ -22,7 +22,11 @@ class QBitTorrentClient(Client):
                 name=t.name,
                 labels=[tag.strip() for tag in t.tags.split(",")] if t.tags else [],
                 started_at=datetime.fromtimestamp(t.added_on),
-                finished_at=datetime.fromtimestamp(t.completion_on),
+                finished_at=(
+                    datetime.fromtimestamp(t.completion_on)
+                    if t.completion_on > 0
+                    else None
+                ),
                 size=t.size,
                 ratio=t.ratio,
                 down_rate=t.dlspeed,
