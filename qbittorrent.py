@@ -50,15 +50,13 @@ class QBitTorrentClient(Client):
 
     def is_faulted(self, torrent):
         """Check if the torrent is faulted. Populate tracker error if lazy-loaded."""
-        if torrent.state != "error":
-            return False
-        if torrent.tracker_error is not None:
+        if torrent.state == "error" or torrent.tracker_error is not None:
             return True
         # Lazy load tracker error
         trackers = self.client.torrents_trackers(torrent.infohash)
         for tracker in trackers:
-            if tracker["msg"] != "":
+            # Tracker has been contacted, but it is not working (or doesn't send proper replies)
+            if tracker["status"] == 4 and tracker["msg"] != "":
                 torrent.tracker_error = tracker["msg"]
                 return True
-        torrent.tracker_error = "???"
-        return True
+        return False
