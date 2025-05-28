@@ -35,7 +35,8 @@ class RTorrentClient(Client):
             "d.timestamp.started=",
             "d.timestamp.finished=",
             "d.size_bytes=",
-            "d.ratio=",
+            "d.down.total=",
+            "d.up.total=",
             "d.down.rate=",
             "d.up.rate=",
             "d.message=",
@@ -50,17 +51,18 @@ class RTorrentClient(Client):
                 started_at=datetime.fromtimestamp(entry[3]),
                 finished_at=datetime.fromtimestamp(entry[4]) if entry[4] > 0 else None,
                 size=int(entry[5]),
-                ratio=float(entry[6]) / 1000,
-                down_rate=float(entry[7]) * 8,  # Bps in
-                up_rate=float(entry[8]) * 8,  # Bps in
+                downloaded=int(entry[6]),  # bytes
+                uploaded=int(entry[7]),  # bytes
+                down_rate=float(entry[8]) * 8,  # Bps in
+                up_rate=float(entry[9]) * 8,  # Bps in
                 state=self._get_status(
-                    is_open=entry[10] == "1",
-                    is_active=entry[11] == "1",
-                    msg=entry[9],
+                    is_open=entry[11] == "1",
+                    is_active=entry[12] == "1",
+                    msg=entry[10],
                 ),
                 tracker_error=(
-                    re.search(r"^Tracker: \[(.*)\]$", entry[9]).group(1)
-                    if entry[9].startswith("Tracker: [")
+                    re.search(r"^Tracker: \[(.*)\]$", entry[10]).group(1)
+                    if entry[10].startswith("Tracker: [")
                     else None
                 ),  # "Tracker: [error message]"
             )

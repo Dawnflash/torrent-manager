@@ -28,7 +28,8 @@ class QBitTorrentClient(Client):
                     else None
                 ),
                 size=t.size,
-                ratio=t.ratio,
+                downloaded=t.downloaded,
+                uploaded=t.uploaded,
                 down_rate=t.dlspeed,
                 up_rate=t.upspeed,
                 state=t.state,

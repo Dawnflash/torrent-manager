@@ -34,7 +34,7 @@ class Tracker:
     def evaluate_requirement(self, torrent: Torrent, name: str, value: int) -> bool:
         """Evaluate a requirement for a torrent."""
         if name == "min_seed_ratio":
-            return torrent.ratio >= value + self.ratio_buffer
+            return torrent.ratio() >= value + self.ratio_buffer
         elif name == "min_seed_hours":
             age = (datetime.now() - torrent.finished_at).total_seconds() / 3600
             return age >= value + self.seed_buffer_hours

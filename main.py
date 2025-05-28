@@ -83,8 +83,12 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents_filtered()
+        client_size_gb = sum(t.size for t in client_torrents)
+        client_ratio = sum(t.uploaded for t in client_torrents) / (
+            sum(t.downloaded for t in client_torrents) or 1
+        )
         Logger.log_message(
-            f"Client: {name} ({len(client_torrents)} torrents, {sum(t.size for t in client_torrents) / (1 << 30):.02f} GiB)"
+            f"Client: {name} ({len(client_torrents)} torrents, {client_size_gb:.02f} GiB, {client_ratio * 100:.02f}% avg. ratio)"
         )
         if args.configure:
             client.configure()
@@ -92,17 +96,20 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             tracker = Tracker(tracker_name)
             if not tracker.enabled:
                 continue
-            torrents = tracker.filter_torrents(client, client_torrents)
+            tracker_torrents = tracker.filter_torrents(client, client_torrents)
             to_delete = [
                 t
-                for t in torrents
+                for t in tracker_torrents
                 if tracker.is_faulted(client, t)
                 or (tracker.is_satisfied(t) and client.is_satisfied(t))
             ]
-            size_torrents_gb = sum(t.size for t in torrents) / (1 << 30)
+            size_torrents_gb = sum(t.size for t in tracker_torrents) / (1 << 30)
             size_sat_gb = sum(t.size for t in to_delete) / (1 << 30)
+            tracker_ratio = sum(t.uploaded for t in tracker_torrents) / (
+                sum(t.downloaded for t in tracker_torrents) or 1
+            )
             Logger.log_message(
-                f"Tracker: {tracker_name} ({len(to_delete)}/{len(torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete)"
+                f"Tracker: {tracker_name} ({len(to_delete)}/{len(tracker_torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete, {tracker_ratio * 100:.02f}% avg. ratio)"
             )
             for torrent in to_delete:
                 age_hours = (
@@ -112,7 +119,7 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                 )
                 is_faulted = tracker.is_faulted(client, torrent)
                 msg = "ERR" if is_faulted else "SAT"
-                msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio * 100:.02f}%"
+                msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio() * 100:.02f}%"
                 if is_faulted:
                     msg += f" [{torrent.tracker_error}]"
                 Logger.log_message(msg)
