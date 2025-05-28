@@ -10,10 +10,10 @@ class Client(ABC):
         self.config = Config.raw["clients"][name]
         self.storage_cap = self.config["storage_cap_gb"] * (1 << 30)
         self.required_labels = set(self.config["required_labels"])
-        self.up_rate_cap = self.config.get("up_rate_cap_mbps", 0) * 1e6  # bps
-        self.down_rate_cap = self.config.get("down_rate_cap_mbps", 0) * 1e6  # bps
+        self.up_rate_cap = self.config.get("up_rate_cap_mbps", 0) / 8 * 1e6  # Bps
+        self.down_rate_cap = self.config.get("down_rate_cap_mbps", 0) / 8 * 1e6  # Bps
         self.up_rate_threshold = (
-            self.config.get("up_rate_threshold_mbps", 0) * 1e6
+            self.config.get("up_rate_threshold_mbps", 0) / 8 * 1e6
         )  # bps
 
     @abstractmethod

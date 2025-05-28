@@ -83,12 +83,14 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
     for name in Config.raw["clients"]:
         client = ClientFactory().create(name)
         client_torrents = client.list_torrents_filtered()
-        client_size_gb = sum(t.size for t in client_torrents)
+        client_size_gb = sum(t.size for t in client_torrents) / (1 << 30)
         client_ratio = sum(t.uploaded for t in client_torrents) / (
             sum(t.downloaded for t in client_torrents) or 1
         )
+        client_down_mbps = sum(t.down_rate for t in client_torrents) * 8 / 1e6
+        client_up_mbps = sum(t.up_rate for t in client_torrents) * 8 / 1e6
         Logger.log_message(
-            f"Client: {name} ({len(client_torrents)} torrents, {client_size_gb:.02f} GiB, {client_ratio * 100:.02f}% avg. ratio)"
+            f"Client: {name} ({len(client_torrents)} torrents, {client_size_gb:.02f} GiB, {client_ratio * 100:.0f}% ratio, ↓{client_down_mbps:.02f} Mbps, ↑{client_up_mbps:.02f} Mbps)"
         )
         if args.configure:
             client.configure()
@@ -108,8 +110,10 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
             tracker_ratio = sum(t.uploaded for t in tracker_torrents) / (
                 sum(t.downloaded for t in tracker_torrents) or 1
             )
+            tracker_down_mbps = sum(t.down_rate for t in tracker_torrents) * 8 / 1e6
+            tracker_up_mbps = sum(t.up_rate for t in tracker_torrents) * 8 / 1e6
             Logger.log_message(
-                f"Tracker: {tracker_name} ({len(to_delete)}/{len(tracker_torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete, {tracker_ratio * 100:.02f}% avg. ratio)"
+                f"Tracker: {tracker_name} ({len(to_delete)}/{len(tracker_torrents)} | {size_sat_gb:.02f}/{size_torrents_gb:.02f} GiB to delete, {tracker_ratio * 100:.0f}% ratio, ↓{tracker_down_mbps:.02f} Mbps, ↑{tracker_up_mbps:.02f} Mbps)"
             )
             for torrent in to_delete:
                 age_hours = (
@@ -119,9 +123,9 @@ Available trackers: {','.join(Config.raw['trackers'].keys())}"""
                 )
                 is_faulted = tracker.is_faulted(client, torrent)
                 msg = "ERR" if is_faulted else "SAT"
-                msg = f"{msg}: {torrent.name} {torrent.size / (1 << 30):.02f}GiB {age_hours:.02f}h {torrent.ratio() * 100:.02f}%"
+                msg = f"{msg}: {torrent.name}, {torrent.size / (1 << 30):.02f}GiB, {age_hours:.02f}h, {torrent.ratio() * 100:.0f}%, ↓{torrent.down_rate * 8 / 1e6:.02f} Mbps, ↑{torrent.up_rate * 8 / 1e6:.02f} Mbps"
                 if is_faulted:
-                    msg += f" [{torrent.tracker_error}]"
+                    msg += f", [{torrent.tracker_error}]"
                 Logger.log_message(msg)
                 if not args.list:
                     client.remove_torrent(torrent)
