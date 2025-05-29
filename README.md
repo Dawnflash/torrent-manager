@@ -14,7 +14,7 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-Copy `config.yaml.example` to `config.yaml`, fill it in and run `python3 main.py check` to have it check for satisfied torrents. Delete them by passing `--delete`. See `-h` for more details.
+Copy `config.yaml.example` to `config.yaml`, fill it in and run `python3 main.py manage` to have it check for satisfied torrents. Delete them by passing `--delete`. See `-h` for more details.
 
 To get the vetting interface use the `check` subcommand together with `--size`, `--tracker` and `--client`. Only 1 client is supported with `check`.
 
