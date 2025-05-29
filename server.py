@@ -60,3 +60,5 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.respond(403, f"NOK: {err}\n")
             except ValueError as e:
                 self.respond(400, f"Invalid parameters: {str(e)}\n")
+        else:
+            self.respond(404, "Not Found.\n")
