@@ -14,20 +14,32 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-Copy `config.yaml.example` to `config.yaml`, fill it in and run the script without `--check` to have it check for satisfied torrents and delete them (unless you pass `--list`). See `-h` for more details.
+Copy `config.yaml.example` to `config.yaml`, fill it in and run `python3 main.py check` to have it check for satisfied torrents. Delete them by passing `--delete`. See `-h` for more details.
 
-To get the vetting interface use the `--check` flag together with `--size`, `--tracker` and `--client`. Only 1 client is supported with `--check`.
+To get the vetting interface use the `check` subcommand together with `--size`, `--tracker` and `--client`. Only 1 client is supported with `check`.
+
+To get a HTTP interface use the `server` subcommand. This is useful for interacting with AutoBRR.
 
 ### Interacting with AutoBRR
 
-If you're using the upstream docker image you need to add python to it by extending the image.
-Use a Dockerfile like this:
+First run the HTTP server like this: `python3 main.py server`. You can run this as a SystemD service:
 
-```dockerfile
-FROM ghcr.io/autobrr/autobrr:latest
-RUN apk add --update --no-cache python3 py3-yaml py3-pip
-RUN python3 -m pip install qbittorrent-api --break-system-packages
 ```
+[Unit]
+Description=Dawn's Torrent Manager
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/my/path/to/torrent-manager/main.py server
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Start it and then point AutoBRR to it in Filter -> External: set Type to Webhook, set your endpoint, GET method, headers: `size={{ .Size }},tracker=mytracker,client=myclient` and expected code 200.
 
 ## Supported clients
 

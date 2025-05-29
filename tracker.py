@@ -1,13 +1,12 @@
 from datetime import datetime
-from config import Config
 from client import Client
 from torrent import Torrent
 
 
 class Tracker:
-    def __init__(self, name: str):
+    def __init__(self, name: str, config: dict):
         self.name = name
-        self.config = Config.raw["trackers"][name]
+        self.config = config
         self.enabled = self.config.get("enabled", True)
         self.label = self.config["label"]
         self.requirement_sets = self.config["requirements"]
@@ -53,7 +52,8 @@ class Tracker:
 
     def can_accept(self, client: Client, size: int) -> tuple[bool, str]:
         """Check if the tracker can accept the torrent. Returns success and error message."""
-        client_torrents = client.list_torrents_filtered()
+        all_torrents = self.list_torrents(client)
+        client_torrents = client.filter(client.list_torrents())
         size_total = sum(torrent.size for torrent in client_torrents) + size
         if size_total > client.storage_cap:
             return (
@@ -87,14 +87,16 @@ class Tracker:
                     f"Download slots exceeded: {len(downloading)}/{self.download_slots}.",
                 )
         if client.up_rate_cap > 0:
-            up_rate = sum(torrent.up_rate for torrent in torrents)
+            # use all torrents as they share the same network interface
+            up_rate = sum(torrent.up_rate for torrent in all_torrents)
             if up_rate >= client.up_rate_cap:
                 return (
                     False,
                     f"Up rate cap exceeded: {up_rate / 1e6:.02f} Mbps.",
                 )
         if client.down_rate_cap > 0:
-            down_rate = sum(torrent.down_rate for torrent in torrents)
+            # use all torrents as they share the same network interface
+            down_rate = sum(torrent.down_rate for torrent in all_torrents)
             if down_rate >= client.down_rate_cap:
                 return (
                     False,

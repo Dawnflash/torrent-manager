@@ -7,8 +7,10 @@ from torrent import Torrent
 
 
 class RTorrentClient(Client):
-    def __init__(self, name: str, url: str, auth: dict[str, str] = None):
-        super().__init__(name)
+    def __init__(self, name: str, config: dict):
+        super().__init__(name, config)
+        auth = config.get("auth", None)
+        url = config["url"]
         if auth:
             auth = urllib.parse.quote(f"{auth['username']}:{auth['password']}")
             url = url.replace("://", f"://{auth}@")

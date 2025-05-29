@@ -1,20 +1,20 @@
 from client import Client
-from config import Config
 from rtorrent import RTorrentClient
 from qbittorrent import QBitTorrentClient
 
 
 class ClientFactory:
+    def __init__(self, config: dict):
+        self.config = config
+
     def create(self, name) -> Client:
-        if name not in Config.raw["clients"]:
+        if name not in self.config:
             raise ValueError(f"Unknown client: {name}")
-        client_config = Config.raw["clients"][name]
+        client_config = self.config[name]
         client_type = client_config["type"]
         if client_type == "rtorrent":
-            return RTorrentClient(name, client_config["url"], client_config.get("auth"))
+            return RTorrentClient(name, client_config)
         elif client_type == "qbittorrent":
-            return QBitTorrentClient(
-                name, client_config["url"], client_config.get("auth")
-            )
+            return QBitTorrentClient(name, client_config)
         else:
             raise ValueError(f"Unknown client type: {client_type}")

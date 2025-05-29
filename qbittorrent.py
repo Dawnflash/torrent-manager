@@ -5,12 +5,13 @@ from torrent import Torrent
 
 
 class QBitTorrentClient(Client):
-    def __init__(self, name: str, url: str, auth: dict[str, str] = None):
-        super().__init__(name)
+    def __init__(self, name: str, config: dict):
+        super().__init__(name, config)
+        auth = config.get("auth", None)
         username = None if auth is None else auth.get("username")
         password = None if auth is None else auth.get("password")
         self.client = qbittorrentapi.Client(
-            host=url, username=username, password=password
+            host=config["url"], username=username, password=password
         )
 
     def list_torrents(self) -> list[Torrent]:

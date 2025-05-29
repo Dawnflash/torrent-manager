@@ -1,6 +1,5 @@
 class Config:
-    @classmethod
-    def __init__(cls, config: dict):
+    def __init__(self, config: dict):
         for client in config["clients"].values():
             for k, v in config["global"]["clients"].items():
                 if k not in client:
@@ -10,4 +9,7 @@ class Config:
                 if k not in tracker:
                     tracker[k] = v
 
-        cls.raw = config
+        self.clients = config["clients"]
+        self.trackers = config["trackers"]
+        self.log_path = config["global"]["log_path"]
+        self.server = config["global"]["server"]

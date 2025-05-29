@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
-from config import Config
 from torrent import Torrent
 
 
 class Client(ABC):
-    def __init__(self, name: str):
+    def __init__(self, name: str, config: dict):
         super().__init__()
         self.name = name
-        self.config = Config.raw["clients"][name]
+        self.config = config
         self.storage_cap = self.config["storage_cap_gb"] * (1 << 30)
         self.required_labels = set(self.config["required_labels"])
         self.up_rate_cap = self.config.get("up_rate_cap_mbps", 0) / 8 * 1e6  # Bps
@@ -20,11 +19,11 @@ class Client(ABC):
     def list_torrents(self) -> list[Torrent]:
         """List torrents."""
 
-    def list_torrents_filtered(self) -> list[Torrent]:
-        """List torrents filtered by required labels."""
+    def filter(self, torrents: list[Torrent]) -> list[Torrent]:
+        """Filter torrents by required labels."""
         return [
             torrent
-            for torrent in self.list_torrents()
+            for torrent in torrents
             if all(label in torrent.labels for label in self.required_labels)
         ]
 
@@ -35,9 +34,6 @@ class Client(ABC):
     @abstractmethod
     def announce(self, torrent: Torrent):
         """Announce to the tracker."""
-
-    def configure(self):
-        """Configure the client."""
 
     def is_satisfied(self, torrent: Torrent) -> bool:
         """Check if the torrent satisfies the client's requirements."""
