@@ -1,5 +1,6 @@
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
 
 from application import Application
 
@@ -43,17 +44,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             delete = query.get("delete", ["0"])[0] == "1"
             self.server.application.manage(delete=delete)
             return self.respond(200, "OK\n")
-        elif url.path == "/check":
-            if "tracker" not in query or "size" not in query or "client" not in query:
+        else:
+            self.respond(404, "Not Found.\n")
+
+    def do_POST(self):
+        """Handle POST requests."""
+        url = urlparse(self.path)
+        if url.path == "/":
+            body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode()
+            data = json.loads(body)
+            print(f"Received POST data: {data}")
+            if "tracker" not in data or "size" not in data or "client" not in data:
                 return self.respond(
                     400, "Required parameters: tracker, size, client.\n"
                 )
             try:
-                tracker_name = query["tracker"][0]
-                size = int(query["size"][0])
-                client_name = query["client"][0]
-
-                ok, err = self.server.application.check(client_name, tracker_name, size)
+                ok, err = self.server.application.check(
+                    data["client"], data["tracker"], data["size"]
+                )
                 if ok:
                     self.respond(200, "OK\n")
                 else:

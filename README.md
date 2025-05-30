@@ -22,7 +22,7 @@ To get a HTTP interface use the `server` subcommand. This is useful for interact
 
 ### Interacting with AutoBRR
 
-First run the HTTP server like this: `python3 main.py server`. You can run this as a SystemD service:
+First run the HTTP server like this: `python3 main.py server`. You can run this as a systemd service:
 
 ```
 [Unit]
@@ -33,13 +33,24 @@ After=network.target
 Type=simple
 Restart=always
 RestartSec=1
+WorkingDirectory=/my/path/to/torrent-manager
 ExecStart=/my/path/to/torrent-manager/main.py server
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Start it and then point AutoBRR to it in Filter -> External: set Type to Webhook, set your endpoint, GET method, headers: `size={{ .Size }},tracker=mytracker,client=myclient` and expected code 200.
+Start it and then point AutoBRR to it in Filter -> External: set Type to Webhook, set your endpoint (`http://localhost:8000`), POST method and expected code 200. Then fill in the payload like this:
+
+```json
+{
+  "size": "{{ .Size }}",
+  "tracker": "mytracker",
+  "client": "myclient"
+}
+```
+
+The tracker and client depend on your filter.
 
 ## Supported clients
 
