@@ -29,6 +29,28 @@ class Server(HTTPServer):
 class HTTPRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler."""
 
+    def read_body(self):
+        """Read the request body."""
+        if "Content-Length" in self.headers:
+            length = int(self.headers["Content-Length"])
+            return self.rfile.read(length).decode()
+        elif (
+            "Transfer-Encoding" in self.headers
+            and self.headers["Transfer-Encoding"] == "chunked"
+        ):
+            body = []
+            while True:
+                line = self.rfile.readline().strip()
+                if not line:
+                    break
+                chunk_size = int(line, 16)
+                if chunk_size == 0:
+                    break
+                body.append(self.rfile.read(chunk_size).decode())
+                self.rfile.read(2)
+            return "".join(body)
+        return ""
+
     def respond(self, code: int, message: str = ""):
         """Send an HTTP response."""
         self.send_response(code)
@@ -51,9 +73,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         """Handle POST requests."""
         url = urlparse(self.path)
         if url.path == "/":
-            body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode()
+            body = self.read_body()
             data = json.loads(body)
-            print(f"Received POST data: {data}")
+            self.server.application.logger.log(f"Received POST data: {data}")
             if "tracker" not in data or "size" not in data or "client" not in data:
                 return self.respond(
                     400, "Required parameters: tracker, size, client.\n"
