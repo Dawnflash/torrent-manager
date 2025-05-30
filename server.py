@@ -58,6 +58,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return self.respond(
                     400, "Required parameters: tracker, size, client.\n"
                 )
+            if not isinstance(data["size"], int) or data["size"] <= 0:
+                return self.respond(400, "Size must be a positive integer.\n")
             try:
                 ok, err = self.server.application.check(
                     data["client"], data["tracker"], data["size"]

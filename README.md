@@ -40,11 +40,11 @@ ExecStart=/my/path/to/torrent-manager/main.py server
 WantedBy=multi-user.target
 ```
 
-Start it and then point AutoBRR to it in Filter -> External: set Type to Webhook, set your endpoint (`http://localhost:8000`), POST method and expected code 200. Then fill in the payload like this:
+Start it and then point AutoBRR to it in Filter -> External: set Type to Webhook, set your endpoint (`http://localhost:8000`), POST method and expected code 200. Then fill in the payload like this (templated JSON):
 
 ```json
 {
-  "size": "{{ .Size }}",
+  "size": {{ .Size }},
   "tracker": "mytracker",
   "client": "myclient"
 }
