@@ -45,11 +45,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     break
                 chunk_size = int(line, 16)
                 if chunk_size == 0:
+                    self.rfile.read(2)  # Read the trailing CRLF
                     break
                 body.append(self.rfile.read(chunk_size).decode())
                 self.rfile.read(2)
             return "".join(body)
-        return ""
+        return self.rfile.read().decode()
 
     def respond(self, code: int, message: str = ""):
         """Send an HTTP response."""
@@ -75,7 +76,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         if url.path == "/":
             body = self.read_body()
             data = json.loads(body)
-            self.server.application.logger.log(f"Received POST data: {data}")
             if "tracker" not in data or "size" not in data or "client" not in data:
                 return self.respond(
                     400, "Required parameters: tracker, size, client.\n"
