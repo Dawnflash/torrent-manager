@@ -8,7 +8,13 @@ It has two primary use-cases:
 
 ## Installation
 
+The following creates a virtualenv and installs dependencies into it.
+On Debian install `python3-venv` from apt. Many systems have it built into python3.
+
 ```
+cd torrent-manager
+python3 -m venv .
+source bin/activate
 pip3 install -r requirements.txt
 ```
 
@@ -22,7 +28,8 @@ To get a HTTP interface use the `server` subcommand. This is useful for interact
 
 ### Interacting with AutoBRR
 
-First run the HTTP server like this: `python3 main.py server`. You can run this as a systemd service:
+First run the HTTP server like this: `python3 main.py server`. You can run this as a systemd service.
+The snippet assumes using a virtualenv.
 
 ```
 [Unit]
@@ -34,7 +41,7 @@ Type=simple
 Restart=always
 RestartSec=1
 WorkingDirectory=/my/path/to/torrent-manager
-ExecStart=/my/path/to/torrent-manager/main.py server
+ExecStart=/my/path/to/torrent-manager/bin/python3 main.py server
 
 [Install]
 WantedBy=multi-user.target

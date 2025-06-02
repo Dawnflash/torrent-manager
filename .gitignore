@@ -4,4 +4,5 @@ config.yaml
 log.txt
 bin
 lib
+lib64
 pyvenv.cfg
